@@ -45,7 +45,7 @@ BACKEND_CPU = 'gloo'
 BACKEND_GPU = 'nccl'
 CUDA = 'cuda'
 CPU = 'cpu'
-PARTICLE_COUNT_DTYPE = torch.int32
+PARTICLE_COUNT_DTYPE = torch.int64
 
 ANGLES_SENSE_FILE_PATH = f"XSENSE_Output/angles_SENSE:{GROUP_RANK}:{LOCAL_RANK}.txt"
 
