@@ -158,14 +158,11 @@ bash Simulate.sh --help                         # To see the help page for the s
 
 1. Detects the GPUs using `nvidia-smi` and validates your mode / process count.
 2. Exports `HARDWARE_MODE`.
-3. For each `Npart` value, rewrites **line 28** (the Npart line) of `XSENSE_Input/config.in` **in place**.
-4. Launches `torchrun` on one node, which starts `threadingEnvVariablesSetup.sh` once per process; that script then runs `XSENSE/XSENSE.py`.
-5. Appends output to `HardwareMode-<mode>-TotalProcesses-<n>.log` and errors to `Error.log`.
+3. Launches `torchrun` on one node, which starts `threadingEnvVariablesSetup.sh` once per process; that script then runs `XSENSE/XSENSE.py`.
+4. Appends output to `HardwareMode-<mode>-TotalProcesses-<n>.log` and errors to `Error.log`.
 
 > **Important**
 >
-> - `bench.sh`, The bash script used for **dedbugging** purposes, **overwrites** the Npart value in `config.in`. The sweep is set by the `NPART_VALS` line near the bottom of `bench.sh`. At the moment it is `for(i=20000; i<=20000; i+=10000)`, i.e. a single value, `Npart = 20000`, used for debugging. Change the start, end and step to run your own sweep, for example `i=10000; i<=100000; i+=10000`.
-> - `bench.sh` pauses 5 seconds between Npart values.
 > - The first run includes `torch.compile` compilation (GPU processes use the `max-autotune` mode), so the warm-up can take a few minutes.
 
 ## 6. Input Files
