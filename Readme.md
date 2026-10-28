@@ -33,7 +33,7 @@ The spectrum is evaluated for a set of electrons (`Npart`) by Monte Carlo sampli
 
 ## 2. Quick Start
 
-1. Create a Python virtual environment.
+1. [Create a Python virtual environment](#4-installation-dependencies-and-virtual-environment).
 2. Install the packages listed in `requirements.txt` into that environment.
 3. Edit `XSENSE_Input/config.in` to describe your simulation.
 4. Make sure the `XSENSE_Output/` folder exists.
