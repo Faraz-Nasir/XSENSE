@@ -1,0 +1,33 @@
+2.17e+07        # e-beam: mean energy Ee [eV]
+0.01            # e-beam: relative energy spread [unitless]
+10e-06          # e-beam: horizontal size sigma_e_x [m]
+10e-06          # e-beam: vertical size sigma_e_y [m]
+0.5e-06         # e-beam: horizontal normalized emittance eps_x [m rad]
+0.5e-06         # e-beam: vertical normalized emittance eps_y [m rad]
+800e-09         # p-beam: laser wavelength [m]
+10.0            # p-beam: # of wavelengths in a pulse (norm) []
+20e-06          # p-beam: horizontal spot size sigma_p [m]
+15e-06          # p-beam: vertical spot size sigma_p [m]
+0.20            # p-beam: field strength parameter a0 [unitless]
+1               # p-beam: laser envelope iTypeEnv =1: gaussian; =2: rect.
+1               # p-beam: laser chirping type modType
+0.0             # p-beam: if modType=2: a0chirp; =3: lambda_RF; =5: p
+0.0e-03         # p-beam horizontal crossing angle
+0.0e-03         # p-beam vertical crossing angle
+0               # p-beam: polarization
+0               # aperture: TypeAp = 0: circular, 1: rectangular
+0.7             # aperture: distance between IP and aperture L_aper [m]
+5e-04           # aperture: if TypeAp = 0: R_aper [m]; = 1: x_aper [m]
+5e-04           # aperture: if TypeAp = 0: ignored; = 1: y_aper [m]
+0.0             # aperture: aperture offset in x
+0.0             # aperture: aperture offset in y
+0.95            # simulation: start spectrum
+1.01            # simulation: end spectrum
+100             # simulation: Nout (number of output point in the spectrum) ::200
+300             # simulation: Ntot                                         ::10000
+400000           # simulation: Npart    
+150             # simulation: N_MC                                           ::500
+0               # simulation: =1: read ICs from file; <> 1: MC
+6               # simulation: # of subdivisions in theta integration
+6               # simulation: # of subdivisions in phi integration
+1               # simulation: =1: Compton; <>1: Thomson
