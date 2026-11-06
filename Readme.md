@@ -95,28 +95,66 @@ Details for every step are in the sections below. Run everything from the **proj
 
 ## 4. Installation: Dependencies and Virtual Environment
 
-`requirements.txt` lists every package (and exact version) the project needs: PyTorch with CUDA 13 builds, Triton, NumPy, SciPy, the `atomics` package, the NVIDIA CUDA runtime libraries, and their supporting packages.
+- ***Project requires a Linux environment. If running on a Windows machine use Windows Subsystem for Linux (WSL).*** 
+
+`requirements.txt` lists every package the project needs: PyTorch, NumPy, SciPy, the `atomics` package.
 
 > **You must create a Python virtual environment and install these packages into it _before_ running `Simulate.sh`.** Do not skip this step and do not install into the system Python.
 
 ```bash
 python3 -m venv xsense-env
-source xsense-env/bin/activate        # Linux / macOS
+# run activate command based on type of interactive shell. To find your shell type. Run echo $0  
+source xsense-env/bin/activate            # Bash / Zsh
+source xsense-env/bin/activate.csh        # csh / tcsh
+source xsense-env/bin/activate.fish       # fish
 pip install -r requirements.txt
 ```
-
-If pip cannot find the `+cu130` PyTorch builds, point it at the PyTorch wheel index as well:
-
-```bash
-pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu130
-```
-
 Keep the virtual environment **active** when you run `Simulate.sh`. The script calls `torchrun` and `python` from your `PATH`, so they must come from this environment.
 
 **Notes**
 
-- A recent NVIDIA driver compatible with CUDA 13 is needed for GPU runs.
-- On ODU clusters, `Simulate.sh` contains commented-out lines (`module load python3/2025.1-py312` and a `crun -p ~/\<Environment path\> torchrun ...` launch command). Uncomment them and use them in place of the plain `torchrun` line if you run there.
+- NVIDIA driver compatible with CUDA 13 is required for GPU runs.
+- On ODU clusters, `Simulate.sh` contains commented-out lines (`module load python3/2025.1-py312` and a `crun -p ~/<Path to virtual environment> torchrun ...` launch command). Uncomment them and use them in place of the plain `torchrun` line if you run there.
+- If user is unable to create a virtual environment and is presented with this error:
+
+```bash
+# The virtual environment was not created successfully because ensurepip is not available.
+# On Debian/Ubuntu systems, you need to install python3-venv package.
+# After installing the python3-venv package, recreate your virtual environment.
+```
+- Two possible solutions:
+    - If user has sudo privileges. Re-run the commands mentioned above after running 
+        ```bash
+        sudo apt install python3-venv 
+        ```
+    
+    - If user does not have sudo privileges.
+        
+        ```bash
+        python3 -m venv xsense-env --without-pip
+        source xsense-env/bin/activate        
+        curl -sS https://bootstrap.pypa.io/get-pip.py | python3
+        pip --version # Confirm that pip points to your virtual environment.
+        pip install -r requirements.txt
+        ```
+- **If simulation fails to run**
+    - Check Error.log file. If this error is present
+
+    ```bash
+    # /XSENSE/xsense-env/lib/python3.14/site-packages/triton/backends/nvidia/driver.c:9:10: fatal error: Python.h: No such file or directory
+    #    9 | #include <Python.h>
+    #      |
+    # compilation terminated.
+    ```
+
+    - Run the commands mentioned below and recreate a fresh environment.
+    ```bash
+    deactivate        # Deactivates the virtual environment.
+    rm -rf xsense-env # Remove the previously created virtual environment. 
+    sudo apt update
+    sudo apt install build-essential python3-dev
+    ```
+    If user does not have sudo privileges, contact your system administrator to install the dependencies mentioned above.
 
 ## 5. Running the Simulation (`Simulate.sh`)
 
