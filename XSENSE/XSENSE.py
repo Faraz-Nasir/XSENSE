@@ -327,7 +327,7 @@ def electronBeamGeneration(batchSize, startIndex = None):
 def compute_spectrum(nLambda, Nout, Ntot,
                          omega_omega0_min, omega_omega0_max, omega0, beta, d_omega,
                          N_MC, rad_v, phi_v, ax_v, axi_v, axi2_v, xi, lambda0, fc, 
-                         currentRankNpartBatchSize, sharedMemorySpace: Atomics,mc_batch_size=100, ntot_batch_size=2000,         
+                         selectedNpartBatchSize, sharedMemorySpace: Atomics,mc_batch_size=100, ntot_batch_size=2000,         
                          freq_batch_size=50):
     """
     Compute spectrum for all particles using GPU acceleration.
@@ -338,7 +338,7 @@ def compute_spectrum(nLambda, Nout, Ntot,
     - freq_batch_size: Number of frequencies to process per batch
     """
 
-    print(f"Rank: [{GLOBAL_RANK}] :: compute_spectrum:  currentRankNpartBatchSize: {currentRankNpartBatchSize}")
+    print(f"Rank: [{GLOBAL_RANK}] :: compute_spectrum:  selectedNpartBatchSize: {selectedNpartBatchSize}")
     
     omLam_base = 1.0 / (c / lambda0)
     hbar_val = 6.582e-16
@@ -349,14 +349,14 @@ def compute_spectrum(nLambda, Nout, Ntot,
 
     results = torch.zeros(Nout, device = DEVICE, dtype = DTYPE) 
     
-    isNpartWorkloadLeft,actualSizeOfBatch,counterNpartValue = sharedMemorySpace.anySharedNpartWorkloadLeft(currentRankNpartBatchSize) 
+    isNpartWorkloadLeft,actualSizeOfNpartBatch,counterNpartValue = sharedMemorySpace.anySharedNpartWorkloadLeft(selectedNpartBatchSize) 
     while (isNpartWorkloadLeft):
 
-        a0_batch, shift_batch, x0_batch, y0_batch, gav_batch = electronBeamGeneration(currentRankNpartBatchSize, TotalNpart - counterNpartValue)
+        a0_batch, shift_batch, x0_batch, y0_batch, gav_batch = electronBeamGeneration(selectedNpartBatchSize, TotalNpart - counterNpartValue)
 
         betaz = torch.sqrt(1.0 - 1.0 / (gav_batch ** 2))
         c1 = gav_batch * (1.0 + betaz)
-        part_results = torch.zeros((currentRankNpartBatchSize, Nout), device=DEVICE, dtype=DTYPE)
+        part_results = torch.zeros((selectedNpartBatchSize, Nout), device=DEVICE, dtype=DTYPE)
 
         for freq_start in range(0, Nout, freq_batch_size):
 
@@ -366,7 +366,7 @@ def compute_spectrum(nLambda, Nout, Ntot,
             omega_p_batch = omega_factors[freq_start:freq_end][None, :] * shift_batch[:, None]
             f_val_batch = fc * (omega_p_batch * hbar_val / (gav_batch[:, None] * mc2_val))
             omLam_batch = omega_p_batch * omLam_base
-            freq_result = torch.zeros((currentRankNpartBatchSize, n_freqs), device=DEVICE, dtype=DTYPE)
+            freq_result = torch.zeros((selectedNpartBatchSize, n_freqs), device=DEVICE, dtype=DTYPE)
                     
             # === BATCH OVER MC ANGLES ===
             for mc_start in range(0, N_MC, mc_batch_size):
@@ -401,10 +401,10 @@ def compute_spectrum(nLambda, Nout, Ntot,
                 c3 = st_exp * cp_exp / c1_exp
                 c4 = (1.0 + ct_exp) / (2.0 * (c1_exp ** 2))
 
-                n1x = torch.zeros((currentRankNpartBatchSize, n_freqs, n_mc), device=DEVICE, dtype=DTYPE)
-                n2x = torch.zeros((currentRankNpartBatchSize, n_freqs, n_mc), device=DEVICE, dtype=DTYPE)
-                n1z = torch.zeros((currentRankNpartBatchSize, n_freqs, n_mc), device=DEVICE, dtype=DTYPE)
-                n2z = torch.zeros((currentRankNpartBatchSize, n_freqs, n_mc), device=DEVICE, dtype=DTYPE)
+                n1x = torch.zeros((selectedNpartBatchSize, n_freqs, n_mc), device=DEVICE, dtype=DTYPE)
+                n2x = torch.zeros((selectedNpartBatchSize, n_freqs, n_mc), device=DEVICE, dtype=DTYPE)
+                n1z = torch.zeros((selectedNpartBatchSize, n_freqs, n_mc), device=DEVICE, dtype=DTYPE)
+                n2z = torch.zeros((selectedNpartBatchSize, n_freqs, n_mc), device=DEVICE, dtype=DTYPE)
 
                 # === BATCH OVER NTOT (integration points) ===
                 for nt_start in range(0, Ntot, ntot_batch_size):
@@ -435,9 +435,9 @@ def compute_spectrum(nLambda, Nout, Ntot,
                 freq_result += dE2_val.sum(dim=2)
             part_results[:, freq_start:freq_end] = freq_result * ((lambda0 * omega_p_batch / nLambda) ** 2)
                 
-        results += (part_results[:actualSizeOfBatch] / (shift_batch[:actualSizeOfBatch, None] ** 2)).sum(dim = 0) 
+        results += (part_results[:actualSizeOfNpartBatch] / (shift_batch[:actualSizeOfNpartBatch, None] ** 2)).sum(dim = 0) 
 
-        isNpartWorkloadLeft,actualSizeOfBatch,counterNpartValue = sharedMemorySpace.anySharedNpartWorkloadLeft(currentRankNpartBatchSize)
+        isNpartWorkloadLeft,actualSizeOfNpartBatch,counterNpartValue = sharedMemorySpace.anySharedNpartWorkloadLeft(selectedNpartBatchSize)
 
     return results
 
@@ -552,7 +552,7 @@ def run_computation(sharedMemorySpace):
     return compute_spectrum(
         nLambda, Nout, Ntot,
         wtilde_min, wtilde_max, omega0, beta, d_omega,
-        N_MC, rad_v, phi_v, ax, axi, axi2, xi, lambda0, fc, currentRankNpartBatchSize,sharedMemorySpace,mc_batch_size=mc_batch_size, ntot_batch_size=ntot_batch_size,
+        N_MC, rad_v, phi_v, ax, axi, axi2, xi, lambda0, fc, selectedNpartBatchSize,sharedMemorySpace,mc_batch_size=mc_batch_size, ntot_batch_size=ntot_batch_size,
         freq_batch_size=freq_batch_size
     )
 
@@ -624,11 +624,11 @@ if __name__ == '__main__':
 
 
     batchingInformation = BatchingInformation(freq_batch_size, mc_batch_size)
-    currentRankNpartBatchSize = batchingInformation.determineNpartBatchSize(DTYPE, DEVICE)    
-    # currentRankNpartBatchSize = 8192   # For debugging purposes    
+    selectedNpartBatchSize = batchingInformation.determineNpartBatchSize(DTYPE, DEVICE)    
+    # selectedNpartBatchSize = 8192   # For debugging purposes    
 
     print(f"Rank: [{GLOBAL_RANK}] :: TotalNpart: {TotalNpart}, Nout: {Nout}, NMC: {N_MC}, Ntot: {Ntot}")
-    print(f"Rank: [{GLOBAL_RANK}] :: Batchsizes npart: {currentRankNpartBatchSize}, nout: {freq_batch_size}, nmc: {mc_batch_size}, ntot: {ntot_batch_size}")
+    print(f"Rank: [{GLOBAL_RANK}] :: Batchsizes npart: {selectedNpartBatchSize}, nout: {freq_batch_size}, nmc: {mc_batch_size}, ntot: {ntot_batch_size}")
 
     #--------------IMPORTANT-------------------
     # THIS IS REQUIRED TO MAKE SURE THAT RANDOM VALUES FROM DIFF RANKS DO NOT OVERLAP
