@@ -207,7 +207,13 @@ bash Simulate.sh --help                         # To see the help page for the s
 
 ### 6.1 `XSENSE_Input/config.in`
 
-Each line holds one number followed by a space and a comment. The value **must be followed by a space**, because the parser reads up to the first space. Do not add, remove or reorder lines. The line number is the parameter's position:
+Each line holds one number followed by a space and a comment. 
+
+The value **must be followed by a space**, because the parser in ./XSENSE/ReadFile.py reads up to the first space for every value. If changing any value ensure that the value is always succeded by a **\<space character\>**
+
+If the space character is not present, the simulation will not run and also won't log anything in the Error.log file.
+
+Do not add, remove or reorder lines. The line number is the parameter's position:
 
 | Line | Parameter |
 |-----:|-----------|
