@@ -263,11 +263,11 @@ The file must contain **at least `Npart (value from config file)` lines**. If it
 
 ## 7. Output Files
 
-**`XSENSE_Output/XSENSE:<GPU|CPU|CPU+GPU>:<processes>:TotalNpart:<Npart>.txt`**
+**`XSENSE_Output/XSENSE-<GPU|CPU|CPU+GPU>-<processes>-TotalNpart-<Npart>.txt`**
 
 Written by the master process (global rank 0). 
 
-**`XSENSE_Output/angles_SENSE:<node rank>:<local rank>.txt`**
+**`XSENSE_Output/angles_SENSE-<node rank>-<local rank>.txt`**
 
 The `N_MC` sampled aperture angles used by each process (radius, phi, x, y).
 

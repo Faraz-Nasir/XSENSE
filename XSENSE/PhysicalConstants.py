@@ -28,7 +28,7 @@ eps0 = 8.85e-12            # epsilon 0 (C^2/Nm^2)
 CONFIG_FILE_PATH = "XSENSE_Input/config.in"
 INPUT_FILE = "XSENSE_Input/ICs_SENSE.in"
 
-DTYPE = torch.float64
+DTYPE = torch.float32
 # 0 -> GPU ONLY, 1 -> CPU ONLY, 2-> CPU + GPU
 HARDWARE_MODE = hardwareModeSafetyCheck(int(environ["HARDWARE_MODE"]))
 LOCAL_RANK = int(environ["LOCAL_RANK"])
@@ -47,14 +47,14 @@ CUDA = 'cuda'
 CPU = 'cpu'
 PARTICLE_COUNT_DTYPE = torch.int64
 
-ANGLES_SENSE_FILE_PATH = f"XSENSE_Output/angles_SENSE:{GROUP_RANK}:{LOCAL_RANK}.txt"
+ANGLES_SENSE_FILE_PATH = f"XSENSE_Output/angles_SENSE-{GROUP_RANK}-{LOCAL_RANK}.txt"
 
 from XSENSE import TotalNpart
 if HARDWARE_MODE == 0:
-    OUTPUT_FILE_PATH = f"XSENSE_Output/XSENSE:GPU:{LOCAL_WORLD_SIZE}:TotalNpart:{TotalNpart}.txt"
+    OUTPUT_FILE_PATH = f"XSENSE_Output/XSENSE-GPU-{LOCAL_WORLD_SIZE}-TotalNpart-{TotalNpart}.txt"
 elif HARDWARE_MODE == 1:
-    OUTPUT_FILE_PATH = f"XSENSE_Output/XSENSE:CPU:{LOCAL_WORLD_SIZE}:TotalNpart:{TotalNpart}.txt"
+    OUTPUT_FILE_PATH = f"XSENSE_Output/XSENSE-CPU-{LOCAL_WORLD_SIZE}-TotalNpart-{TotalNpart}.txt"
 elif HARDWARE_MODE == 2:
-    OUTPUT_FILE_PATH = f"XSENSE_Output/XSENSE:CPU+GPU:{LOCAL_WORLD_SIZE}:TotalNpart:{TotalNpart}.txt"
+    OUTPUT_FILE_PATH = f"XSENSE_Output/XSENSE-CPU+GPU-{LOCAL_WORLD_SIZE}-TotalNpart-{TotalNpart}.txt"
 
 OUTPUT_FILE_LINE_FORMAT = r'%15.8e  %15.8e  %15.8e  %15.8e'
