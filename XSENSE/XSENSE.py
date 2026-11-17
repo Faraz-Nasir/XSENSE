@@ -337,8 +337,6 @@ def compute_spectrum(nLambda, Nout, Ntot,
     - ntot_batch_size: Number of integration points to process per batch
     - freq_batch_size: Number of frequencies to process per batch
     """
-
-    print(f"Rank: [{GLOBAL_RANK}] :: compute_spectrum:  selectedNpartBatchSize: {selectedNpartBatchSize}")
     
     omLam_base = 1.0 / (c / lambda0)
     hbar_val = 6.582e-16
@@ -633,7 +631,6 @@ if __name__ == '__main__':
     # selectedNpartBatchSize = 8192   # For debugging purposes    
 
     print(f"Rank: [{GLOBAL_RANK}] :: TotalNpart: {TotalNpart}, Nout: {Nout}, NMC: {N_MC}, Ntot: {Ntot}")
-    print(f"Rank: [{GLOBAL_RANK}] :: Batchsizes npart: {selectedNpartBatchSize}, nout: {freq_batch_size}, nmc: {mc_batch_size}, ntot: {ntot_batch_size}")
 
     #--------------IMPORTANT-------------------
     # THIS IS REQUIRED TO MAKE SURE THAT RANDOM VALUES FROM DIFF RANKS DO NOT OVERLAP
