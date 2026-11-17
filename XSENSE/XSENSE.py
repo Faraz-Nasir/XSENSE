@@ -352,11 +352,13 @@ def compute_spectrum(nLambda, Nout, Ntot,
     isNpartWorkloadLeft,actualSizeOfNpartBatch,counterNpartValue = sharedMemorySpace.anySharedNpartWorkloadLeft(selectedNpartBatchSize) 
     while (isNpartWorkloadLeft):
 
-        a0_batch, shift_batch, x0_batch, y0_batch, gav_batch = electronBeamGeneration(selectedNpartBatchSize, TotalNpart - counterNpartValue)
+        # [#1] switch out actualSizeOfNpartBatch for selectedNpartBatchSize here to add npart tail padding mechanism
+        a0_batch, shift_batch, x0_batch, y0_batch, gav_batch = electronBeamGeneration(actualSizeOfNpartBatch, TotalNpart - counterNpartValue)
 
         betaz = torch.sqrt(1.0 - 1.0 / (gav_batch ** 2))
         c1 = gav_batch * (1.0 + betaz)
-        part_results = torch.zeros((selectedNpartBatchSize, Nout), device=DEVICE, dtype=DTYPE)
+        # [#2] switch out actualSizeOfNpartBatch for selectedNpartBatchSize here to add npart tail padding mechanism
+        part_results = torch.zeros((actualSizeOfNpartBatch, Nout), device=DEVICE, dtype=DTYPE)
 
         for freq_start in range(0, Nout, freq_batch_size):
 
@@ -366,7 +368,8 @@ def compute_spectrum(nLambda, Nout, Ntot,
             omega_p_batch = omega_factors[freq_start:freq_end][None, :] * shift_batch[:, None]
             f_val_batch = fc * (omega_p_batch * hbar_val / (gav_batch[:, None] * mc2_val))
             omLam_batch = omega_p_batch * omLam_base
-            freq_result = torch.zeros((selectedNpartBatchSize, n_freqs), device=DEVICE, dtype=DTYPE)
+            # [#3] switch out actualSizeOfNpartBatch for selectedNpartBatchSize here to add npart tail padding mechanism
+            freq_result = torch.zeros((actualSizeOfNpartBatch, n_freqs), device=DEVICE, dtype=DTYPE)
                     
             # === BATCH OVER MC ANGLES ===
             for mc_start in range(0, N_MC, mc_batch_size):
@@ -401,10 +404,11 @@ def compute_spectrum(nLambda, Nout, Ntot,
                 c3 = st_exp * cp_exp / c1_exp
                 c4 = (1.0 + ct_exp) / (2.0 * (c1_exp ** 2))
 
-                n1x = torch.zeros((selectedNpartBatchSize, n_freqs, n_mc), device=DEVICE, dtype=DTYPE)
-                n2x = torch.zeros((selectedNpartBatchSize, n_freqs, n_mc), device=DEVICE, dtype=DTYPE)
-                n1z = torch.zeros((selectedNpartBatchSize, n_freqs, n_mc), device=DEVICE, dtype=DTYPE)
-                n2z = torch.zeros((selectedNpartBatchSize, n_freqs, n_mc), device=DEVICE, dtype=DTYPE)
+                # [#4] switch out actualSizeOfNpartBatch for selectedNpartBatchSize here to add npart tail padding mechanism
+                n1x = torch.zeros((actualSizeOfNpartBatch, n_freqs, n_mc), device=DEVICE, dtype=DTYPE)
+                n2x = torch.zeros((actualSizeOfNpartBatch, n_freqs, n_mc), device=DEVICE, dtype=DTYPE)
+                n1z = torch.zeros((actualSizeOfNpartBatch, n_freqs, n_mc), device=DEVICE, dtype=DTYPE)
+                n2z = torch.zeros((actualSizeOfNpartBatch, n_freqs, n_mc), device=DEVICE, dtype=DTYPE)
 
                 # === BATCH OVER NTOT (integration points) ===
                 for nt_start in range(0, Ntot, ntot_batch_size):
@@ -436,8 +440,9 @@ def compute_spectrum(nLambda, Nout, Ntot,
             part_results[:, freq_start:freq_end] = freq_result * ((lambda0 * omega_p_batch / nLambda) ** 2)
                 
         results += (part_results[:actualSizeOfNpartBatch] / (shift_batch[:actualSizeOfNpartBatch, None] ** 2)).sum(dim = 0) 
-
-        isNpartWorkloadLeft,actualSizeOfNpartBatch,counterNpartValue = sharedMemorySpace.anySharedNpartWorkloadLeft(selectedNpartBatchSize)
+        
+        # [#5] switch out actualSizeOfNpartBatch for selectedNpartBatchSize here to add npart tail padding mechanism
+        isNpartWorkloadLeft,actualSizeOfNpartBatch,counterNpartValue = sharedMemorySpace.anySharedNpartWorkloadLeft(actualSizeOfNpartBatch)
 
     return results
 
