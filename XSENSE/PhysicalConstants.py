@@ -28,7 +28,7 @@ eps0 = 8.85e-12            # epsilon 0 (C^2/Nm^2)
 CONFIG_FILE_PATH = "XSENSE_Input/config.in"
 INPUT_FILE = "XSENSE_Input/ICs_SENSE.in"
 
-DTYPE = torch.float32
+DTYPE = torch.float64
 # 0 -> GPU ONLY, 1 -> CPU ONLY, 2-> CPU + GPU
 HARDWARE_MODE = hardwareModeSafetyCheck(int(environ["HARDWARE_MODE"]))
 LOCAL_RANK = int(environ["LOCAL_RANK"])
